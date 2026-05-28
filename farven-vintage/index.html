@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="farven vintage — Warehouse Curated Vintage. 大阪発、倉庫型セレクト古着。毎週土曜入荷。">
+  <meta property="og:title" content="farven vintage | Warehouse Curated Vintage">
+  <meta property="og:description" content="売り場ではなく、倉庫を体験に変える。探す古着屋ではなく、選べる古着屋。">
+  <meta property="og:type" content="website">
+  <title>farven vintage | Warehouse Curated Vintage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========== BRAND NAV ========== -->
+  <div class="brand-nav">
+    <span class="bn-label">farven</span>
+    <div class="bn-links">
+      <a href="../farven-vintage/index.html" class="bn-link bn-active">vintage</a>
+      <span class="bn-sep">·</span>
+      <a href="../farven-candle/index.html" class="bn-link">candle</a>
+    </div>
+  </div>
+
+  <!-- ========== ANNOUNCEMENT BANNER ========== -->
+  <div id="announcementBar" style="display:none;background:var(--text);color:var(--bg);text-align:center;padding:.6rem 1rem;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;position:relative;z-index:101;"></div>
+
+  <!-- ========== HEADER ========== -->
+  <header id="header">
+    <nav class="nav-inner">
+      <ul class="nav-links nav-left">
+        <li><a href="#new-in">NEW IN</a></li>
+        <li><a href="#shop">ITEMS</a></li>
+        <li><a href="#color-browse">COLOR</a></li>
+      </ul>
+
+      <a href="#" class="logo-wrap" id="logoLink">
+        <!-- ロゴ画像をここに配置: images/logo.png -->
+        <img src="images/logo.png" alt="farven vintage" class="logo-img" id="logoImg" onerror="this.style.display='none'; document.getElementById('logoText').style.display='block'">
+        <span class="logo-text" id="logoText" style="display:none">farven vintage</span>
+      </a>
+
+      <ul class="nav-links nav-right">
+        <li><a href="#about">ABOUT</a></li>
+        <li><a href="#member">MEMBER</a></li>
+        <li>
+          <button class="cart-btn" id="cartBtn" aria-label="カートを開く">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            <span class="cart-count" id="cartCount">0</span>
+          </button>
+        </li>
+      </ul>
+
+      <button class="menu-btn" id="menuBtn" aria-label="メニュー">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#new-in" class="mobile-link">NEW IN</a>
+      <a href="#shop" class="mobile-link">ITEMS</a>
+      <a href="#color-browse" class="mobile-link">COLOR</a>
+      <a href="#about" class="mobile-link">ABOUT</a>
+      <a href="#member" class="mobile-link">MEMBER</a>
+    </div>
+  </header>
+
+  <!-- ========== HERO ========== -->
+  <section id="hero">
+    <div class="hero-inner">
+      <div class="hero-tag">WAREHOUSE CURATED VINTAGE</div>
+      <h1 class="hero-title">
+        売り場ではなく、<br>
+        倉庫を体験に変える。
+      </h1>
+      <p class="hero-sub">探す古着屋ではなく、選べる古着屋。</p>
+      <a href="#new-in" class="hero-cta">最新入荷を見る</a>
+    </div>
+    <div class="hero-strip">
+      <span>毎週土曜 新入荷</span>
+      <span>·</span>
+      <span>OSAKA</span>
+      <span>·</span>
+      <span>LADIES VINTAGE</span>
+      <span>·</span>
+      <span>Y2K CURATED</span>
+      <span>·</span>
+      <span>毎週土曜 新入荷</span>
+      <span>·</span>
+      <span>OSAKA</span>
+      <span>·</span>
+      <span>LADIES VINTAGE</span>
+      <span>·</span>
+      <span>Y2K CURATED</span>
+      <span>·</span>
+    </div>
+  </section>
+
+  <!-- ========== SATURDAY DROP COUNTDOWN ========== -->
+  <section id="drop-banner">
+    <div class="drop-inner">
+      <div class="drop-label">NEXT SATURDAY DROP</div>
+      <div class="drop-countdown" id="countdown">
+        <div class="count-unit"><span id="cDays">00</span><small>DAYS</small></div>
+        <div class="count-sep">:</div>
+        <div class="count-unit"><span id="cHours">00</span><small>HRS</small></div>
+        <div class="count-sep">:</div>
+        <div class="count-unit"><span id="cMins">00</span><small>MIN</small></div>
+        <div class="count-sep">:</div>
+        <div class="count-unit"><span id="cSecs">00</span><small>SEC</small></div>
+      </div>
+      <div class="drop-notify">
+        <p>入荷通知のご登録</p>
+        <form class="notify-form" id="notifyForm">
+          <input type="email" placeholder="メールアドレス" required>
+          <button type="submit">登録</button>
+        </form>
+        <span class="notify-note">毎週土曜 12:00 に新着アイテムをお届けします</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== NEW IN ========== -->
+  <section id="new-in">
+    <div class="section-header">
+      <span class="section-tag">NEW IN</span>
+      <h2 class="section-title">最新入荷</h2>
+      <p class="section-note">すべて1点物。なくなり次第終了。</p>
+    </div>
+    <div class="product-grid" id="newInGrid">
+      <!-- JSで生成 -->
+    </div>
+    <div class="section-footer">
+      <a href="#shop" class="link-all">すべてのアイテムを見る →</a>
+    </div>
+  </section>
+
+  <!-- ========== COLOR BROWSE ========== -->
+  <section id="color-browse">
+    <div class="section-header">
+      <span class="section-tag">CURATED BY COLOR</span>
+      <h2 class="section-title">カラーで選ぶ</h2>
+      <p class="section-note">倉庫の棚をそのままデジタルへ。色から直感的に選べる。</p>
+    </div>
+    <div class="color-palette" id="colorPalette">
+      <!-- JSで生成 -->
+    </div>
+    <div class="color-products" id="colorProducts">
+      <!-- JSで生成 -->
+    </div>
+  </section>
+
+  <!-- ========== SHOP (FULL CATALOG) ========== -->
+  <section id="shop">
+    <div class="section-header">
+      <span class="section-tag">ITEMS</span>
+      <h2 class="section-title">アイテム一覧</h2>
+    </div>
+
+    <div class="shop-controls">
+      <div class="filter-tabs" id="catTabs">
+        <button class="tab active" data-cat="all">すべて</button>
+        <button class="tab" data-cat="tops">トップス</button>
+        <button class="tab" data-cat="bottoms">ボトムス</button>
+        <button class="tab" data-cat="outer">アウター</button>
+        <button class="tab" data-cat="onepiece">ワンピース</button>
+        <button class="tab" data-cat="other">その他</button>
+      </div>
+      <div class="sort-wrap">
+        <select id="sortSelect" class="sort-select">
+          <option value="new">新着順</option>
+          <option value="low">価格が低い順</option>
+          <option value="high">価格が高い順</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="product-grid" id="shopGrid">
+      <!-- JSで生成 -->
+    </div>
+  </section>
+
+  <!-- ========== MEMBER SYSTEM ========== -->
+  <section id="member">
+    <div class="member-inner">
+      <div class="member-text">
+        <span class="section-tag">MEMBER</span>
+        <h2 class="member-title">紹介で広がる、<br>特別な体験。</h2>
+        <p class="member-desc">
+          farven vintageでは、お買い上げのお客様に<strong>ショップカード</strong>をお渡しします。
+          ご友人へのご紹介＋カードのご提示で、非公開の<strong>裏ラック閲覧権</strong>をお届けいたします。
+        </p>
+        <div class="member-steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <strong>ご購入時にカードをお受け取りください</strong>
+              <p>日付とサインが入ったショップカードをお渡しいたします。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <strong>ご友人とご一緒にご来店ください</strong>
+              <p>ご友人とご一緒にご来店いただき、カードをご提示いただくと特典が解放されます。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <strong>裏ラックをご覧いただけます</strong>
+              <p>一般公開前のセレクトアイテムを優先してご覧いただけます。</p>
+            </div>
+          </div>
+        </div>
+        <div class="online-member">
+          <p class="online-member-title">オンライン限定：入荷48時間前アーリーアクセス</p>
+          <form class="member-form" id="memberForm">
+            <input type="text" placeholder="紹介コードを入力" id="referralInput">
+            <button type="submit">解放する</button>
+          </form>
+          <p class="member-note">紹介コードは実店舗でのお買い上げ後にお渡しします。</p>
+        </div>
+      </div>
+      <div class="member-card-wrap">
+        <div class="shop-card">
+          <div class="shop-card-front">
+            <span class="card-brand">farven vintage</span>
+            <span class="card-sub">vintage</span>
+            <div class="card-meta">
+              <span id="cardDate"></span>
+              <span class="card-sig">sign ___________</span>
+            </div>
+          </div>
+          <div class="shop-card-back">
+            <p class="card-back-text">このカードをお持ちの上<br>ご友人とご一緒にご来店ください</p>
+            <p class="card-back-reward">裏ラック閲覧権 解放</p>
+            <span class="card-brand-sm">farven vintage</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== ABOUT ========== -->
+  <section id="about">
+    <div class="about-inner">
+      <div class="about-img-block">
+        <div class="about-img-placeholder">
+          <span>WAREHOUSE<br>CURATED<br>VINTAGE</span>
+        </div>
+      </div>
+      <div class="about-text">
+        <span class="section-tag">ABOUT</span>
+        <h2 class="about-title">古着屋の常識を、<br>変えたい。</h2>
+        <div class="about-text-body">
+          <p>farven vintageは、「倉庫型×セレクト型」という新しい店舗フォーマットに挑戦するレディース古着ブランドです。</p>
+          <p>広い空間に整然と並ぶラック。カラーで陳列されたアイテム。探し回らなくていい、選べる古着屋。</p>
+          <p>感覚だけでなく、数字と再現性を重視した「仕組みで売れる」古着屋として、大阪から発信します。</p>
+        </div>
+        <div class="about-tags">
+          <span>OSAKA</span>
+          <span>LADIES VINTAGE</span>
+          <span>Y2K</span>
+          <span>CURATED</span>
+          <span>WAREHOUSE</span>
+        </div>
+        <a href="https://www.instagram.com/farven_vintage/" target="_blank" rel="noopener" class="about-ig" data-ig-href>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+          <span class="ig-handle">@farven_vintage</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== INSTAGRAM GRID ========== -->
+  <section id="instagram">
+    <div class="section-header">
+      <span class="section-tag">INSTAGRAM</span>
+      <h2 class="section-title">@farven_vintage</h2>
+    </div>
+    <div class="ig-grid" id="igGrid">
+      <!-- JSで生成 -->
+    </div>
+    <div class="section-footer">
+      <a href="https://www.instagram.com/farven_vintage/" target="_blank" rel="noopener" class="link-all" data-ig-href>
+        <span class="ig-handle">@farven_vintage</span> をフォローする →
+      </a>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer id="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="footer-logo">farven vintage</span>
+        <p>Warehouse Curated Vintage<br>大阪 — 近日オープン</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <strong>SHOP</strong>
+          <a href="#new-in">New In</a>
+          <a href="#shop">Items</a>
+          <a href="#color-browse">Color Browse</a>
+        </div>
+        <div class="footer-col">
+          <strong>INFO</strong>
+          <a href="#about">About</a>
+          <a href="#member">Member</a>
+          <a href="#">特定商取引法</a>
+          <a href="#">プライバシーポリシー</a>
+        </div>
+        <div class="footer-col">
+          <strong>CONTACT</strong>
+          <a href="mailto:info@farven-vintage.com">info@farven-vintage.com</a>
+          <a href="https://www.instagram.com/farven_vintage/" target="_blank" rel="noopener">Instagram</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 farven vintage. All rights reserved.</p>
+      <p class="footer-note">全商品1点物。売り切れの場合はご了承ください。</p>
+      <a href="admin.html" class="admin-link">管理画面</a>
+    </div>
+  </footer>
+
+  <!-- ========== CART DRAWER ========== -->
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer-header">
+      <h3>CART</h3>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <p class="cart-empty">カートは空です</p>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <div class="cart-total">
+        <span>合計</span>
+        <span id="cartTotal">¥0</span>
+      </div>
+      <p class="cart-shipping-note">¥15,000以上で送料無料（全国一律 ¥600）</p>
+      <button class="checkout-btn">購入手続きへ</button>
+    </div>
+  </aside>
+
+  <!-- ========== PRODUCT MODAL ========== -->
+  <div class="modal-overlay" id="modalOverlay"></div>
+  <div class="product-modal" id="productModal">
+    <button class="modal-close" id="modalClose">×</button>
+    <div class="modal-inner" id="modalInner">
+      <!-- JSで生成 -->
+    </div>
+  </div>
+
+  <!-- ========== TOAST ========== -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
