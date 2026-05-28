@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>farven candle — 管理画面</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#F6EFE7;--dark:#261A10;--mid:#6B5040;--muted:#A08875;--border:#E0D4C8;--white:#fff;
+      --admin-bg:#1A1410;--admin-sidebar:#221810;--admin-border:#342820;
+      --success:#4A8C5A;--danger:#904030;--accent:#F6EFE7;--amber:#C4905A;
+      --ff-serif:'Cormorant Garamond',serif;--ff-sans:'Jost',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:var(--ff-sans);-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit}
+    button,input,select,textarea{font-family:inherit}
+
+    /* LOGIN */
+    #loginScreen{min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+    .login-card{width:360px;padding:3rem;background:#fff;box-shadow:0 4px 40px rgba(38,26,16,.1);text-align:center;}
+    .login-logo{font-family:var(--ff-serif);font-size:1.5rem;font-weight:300;letter-spacing:.14em;margin-bottom:.25rem;}
+    .login-sub{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:2.5rem;}
+    .login-card form{display:flex;flex-direction:column;gap:1rem}
+    .login-input{width:100%;padding:.85rem 1rem;border:1px solid var(--border);background:transparent;font-size:.82rem;outline:none;letter-spacing:.04em;transition:border-color .2s;}
+    .login-input:focus{border-color:var(--dark)}
+    .login-btn{background:var(--dark);color:var(--bg);padding:.9rem;font-size:.7rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border:none;transition:opacity .2s;}
+    .login-btn:hover{opacity:.8}
+    #loginError{color:var(--danger);font-size:.72rem;letter-spacing:.06em;margin-top:.25rem;}
+
+    /* DASHBOARD */
+    #dashboard{display:none;height:100vh;overflow:hidden}
+    .admin-wrap{display:flex;height:100%;background:var(--admin-bg)}
+    .sidebar{width:220px;flex-shrink:0;background:var(--admin-sidebar);display:flex;flex-direction:column;border-right:1px solid var(--admin-border);}
+    .sidebar-logo{padding:1.5rem 1.25rem;border-bottom:1px solid var(--admin-border);}
+    .sidebar-logo span{font-family:var(--ff-serif);font-size:1rem;font-weight:300;letter-spacing:.12em;color:var(--accent);display:block;}
+    .sidebar-logo small{font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:#665040;margin-top:2px;display:block;}
+    .sidebar-nav{flex:1;padding:1rem 0}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem;font-size:.72rem;font-weight:400;letter-spacing:.08em;color:#8A7060;cursor:pointer;transition:background .15s,color .15s;border-left:2px solid transparent;}
+    .nav-item:hover{background:rgba(246,239,231,.04);color:#ccc}
+    .nav-item.active{background:rgba(246,239,231,.07);color:var(--accent);border-left-color:var(--amber)}
+    .sidebar-footer{padding:1rem 1.25rem;border-top:1px solid var(--admin-border);display:flex;flex-direction:column;gap:.6rem;}
+    .sidebar-link{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:#665040;transition:color .15s;display:flex;align-items:center;gap:.5rem;}
+    .sidebar-link:hover{color:var(--accent)}
+    .logout-btn{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:#554030;background:none;border:none;cursor:pointer;text-align:left;display:flex;align-items:center;gap:.5rem;transition:color .15s;}
+    .logout-btn:hover{color:var(--danger)}
+    .admin-main{flex:1;overflow-y:auto;background:var(--admin-bg)}
+    .tab-panel{display:none;padding:2rem;max-width:1100px}
+    .tab-panel.active{display:block}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;padding-bottom:1.25rem;border-bottom:1px solid var(--admin-border);}
+    .panel-title{font-family:var(--ff-serif);font-size:1.5rem;font-weight:300;color:var(--accent);letter-spacing:.04em;}
+    .panel-sub{font-size:.68rem;color:#665040;letter-spacing:.08em;margin-top:.25rem;}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.2rem;font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:none;transition:opacity .2s;}
+    .btn-primary{background:var(--accent);color:var(--dark)}.btn-primary:hover{opacity:.85}
+    .btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{opacity:.85}
+    .btn-ghost{background:transparent;color:#8A7060;border:1px solid #443020}.btn-ghost:hover{border-color:#8A7060;color:#ccc}
+    .btn-sm{padding:.4rem .8rem;font-size:.62rem}
+
+    /* TABLE */
+    .product-table{width:100%;border-collapse:collapse}
+    .product-table th{font-size:.6rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#665040;padding:.75rem;text-align:left;border-bottom:1px solid var(--admin-border);}
+    .product-table td{padding:.75rem;border-bottom:1px solid #2A1C14;font-size:.75rem;color:#aaa;vertical-align:middle;}
+    .product-table tr:hover td{background:rgba(255,255,255,.02)}
+    .product-name-cell{color:#ddd;font-weight:400;max-width:220px}
+    .product-name-cell small{display:block;font-size:.62rem;color:#665040;margin-top:2px}
+    .color-dot{width:16px;height:16px;border-radius:50%;border:1px solid rgba(255,255,255,.1);display:inline-block;vertical-align:middle;margin-right:6px;}
+    .status-badge{display:inline-block;font-size:.58rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:1px;}
+    .status-active{background:rgba(74,140,90,.2);color:#6db87d}
+    .status-sold{background:rgba(144,64,48,.2);color:#c97070}
+    .status-new{background:rgba(196,144,90,.1);color:#c4905a}
+    .actions-cell{display:flex;gap:.4rem;align-items:center}
+    .link-status{font-size:.62rem;color:#4A8;letter-spacing:.06em}
+    .link-missing{font-size:.62rem;color:#665040;letter-spacing:.06em}
+
+    /* DRAWER */
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s;}
+    .drawer-overlay.open{opacity:1;pointer-events:all}
+    .form-drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:#281C14;z-index:51;overflow-y:auto;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border-left:1px solid var(--admin-border);}
+    .form-drawer.open{transform:translateX(0)}
+    .drawer-head{position:sticky;top:0;background:#281C14;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--admin-border);}
+    .drawer-title{font-size:.8rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
+    .drawer-close{font-size:1.3rem;color:#665040;background:none;border:none;cursor:pointer;padding:4px;transition:color .15s;}
+    .drawer-close:hover{color:#ccc}
+    .drawer-body{padding:1.5rem}
+
+    /* FORM */
+    .form-group{margin-bottom:1.25rem}
+    .form-label{display:block;font-size:.62rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#665040;margin-bottom:.5rem;}
+    .form-control{width:100%;padding:.7rem .85rem;background:#1A1008;border:1px solid #3A2418;color:#ddd;font-size:.8rem;outline:none;transition:border-color .2s;}
+    .form-control:focus{border-color:#665040}
+    .form-control::placeholder{color:#443020}
+    textarea.form-control{resize:vertical;min-height:80px;line-height:1.6}
+    select.form-control{appearance:none;cursor:pointer}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .form-hint{font-size:.62rem;color:#554030;margin-top:.4rem;line-height:1.5;letter-spacing:.04em}
+    .checkbox-row{display:flex;align-items:center;gap:.6rem;font-size:.75rem;color:#999;cursor:pointer;}
+    .checkbox-row input{accent-color:var(--amber);width:15px;height:15px;cursor:pointer}
+    .form-section-title{font-size:.6rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:#554030;margin:1.5rem 0 .75rem;padding-bottom:.5rem;border-bottom:1px solid #2A1810;}
+    .measurements-editor{display:flex;flex-direction:column;gap:.5rem}
+    .measurement-row{display:flex;gap:.5rem;align-items:center}
+    .measurement-row input{flex:1;min-width:0}
+    .remove-measure{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid #443020;color:#665040;cursor:pointer;font-size:.9rem;flex-shrink:0;transition:border-color .15s,color .15s;}
+    .remove-measure:hover{border-color:var(--danger);color:var(--danger)}
+    .add-measure{font-size:.62rem;color:#554030;background:none;border:1px dashed #3A2018;padding:.45rem;cursor:pointer;transition:border-color .15s,color .15s;text-align:center;}
+    .add-measure:hover{border-color:#665040;color:#999}
+    .form-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:2rem;padding-top:1.25rem;border-top:1px solid var(--admin-border);}
+
+    /* SETTINGS */
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+    .settings-card{background:#221810;border:1px solid var(--admin-border);padding:1.5rem;}
+    .settings-card-title{font-size:.6rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:#665040;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid #2A1810;}
+    .save-bar{position:sticky;bottom:0;background:rgba(20,12,8,.95);backdrop-filter:blur(8px);padding:1rem 2rem;border-top:1px solid var(--admin-border);display:flex;align-items:center;justify-content:space-between;margin-top:2rem;}
+    .save-bar-note{font-size:.68rem;color:#554030;letter-spacing:.06em}
+    #saveStatusSite{font-size:.68rem;color:var(--success);letter-spacing:.06em;min-width:100px;text-align:right}
+
+    /* PAYMENT */
+    .payment-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2rem}
+    .payment-card{background:#221810;border:1px solid var(--admin-border);padding:1.5rem;}
+    .payment-card-head{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;}
+    .payment-icon{width:40px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;}
+    .payment-card h3{font-size:.85rem;font-weight:500;color:var(--accent)}
+    .payment-card p{font-size:.72rem;color:#8A7060;line-height:1.7;letter-spacing:.04em}
+    .payment-steps{margin-top:1rem;display:flex;flex-direction:column;gap:.5rem}
+    .payment-step{display:flex;gap:.6rem;font-size:.7rem;color:#8A7060;line-height:1.6;}
+    .step-n{min-width:20px;height:20px;border-radius:50%;background:rgba(196,144,90,.1);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0;margin-top:1px;}
+    .platform-recommended{display:inline-block;font-size:.55rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;background:rgba(196,144,90,.1);color:var(--amber);padding:2px 6px;margin-left:.5rem;}
+    .guide-link{display:inline-flex;align-items:center;gap:.3rem;font-size:.68rem;color:#8A7060;border-bottom:1px solid #443020;padding-bottom:1px;margin-top:.75rem;transition:color .15s,border-color .15s;}
+    .guide-link:hover{color:var(--accent);border-color:var(--accent)}
+    .alert{padding:.85rem 1.1rem;font-size:.72rem;letter-spacing:.04em;border-left:3px solid;margin-bottom:1.25rem;line-height:1.6;}
+    .alert-info{background:rgba(74,140,90,.08);border-color:var(--success);color:#8ec89b}
+    .alert-warn{background:rgba(144,64,48,.08);border-color:var(--danger);color:#c97070}
+    .alert strong{font-weight:500}
+    .ig-posts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1rem}
+    .ig-post-input-cell{display:flex;flex-direction:column;gap:.4rem}
+    .ig-post-num{font-size:.58rem;color:#554030;letter-spacing:.1em}
+    #adminToast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:var(--dark);font-size:.72rem;letter-spacing:.1em;padding:.8rem 1.75rem;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;white-space:nowrap;}
+    #adminToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .empty-state{text-align:center;padding:4rem 2rem;color:#443020;}
+    .empty-state-icon{font-size:2rem;margin-bottom:1rem;opacity:.4}
+    .empty-state p{font-size:.78rem;letter-spacing:.06em;line-height:1.7}
+    @media(max-width:700px){
+      .sidebar{width:56px}
+      .nav-item span,.sidebar-logo span,.sidebar-logo small,.sidebar-link span,.logout-btn span{display:none}
+      .nav-item{justify-content:center;padding:.75rem 0}
+      .settings-grid{grid-template-columns:1fr}
+      .form-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">farven candle</div>
+    <div class="login-sub">管理画面</div>
+    <form id="loginForm">
+      <input class="login-input" type="text"     id="adminId" placeholder="ログインID"  autocomplete="username">
+      <input class="login-input" type="password" id="adminPw" placeholder="パスワード" autocomplete="current-password">
+      <button class="login-btn" type="submit">ログイン</button>
+      <p id="loginError" style="display:none;color:#904030;font-size:.72rem;margin-top:.25rem;">IDまたはパスワードが正しくありません</p>
+    </form>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="admin-wrap">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span>farven candle</span>
+        <small>admin panel</small>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-item active" data-tab="products">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/></svg>
+          <span>商品管理</span>
+        </div>
+        <div class="nav-item" data-tab="site">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>サイト設定</span>
+        </div>
+        <div class="nav-item" data-tab="payment">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span>決済・SNS</span>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <a class="sidebar-link" href="index.html" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <span>サイトを確認</span>
+        </a>
+        <a class="sidebar-link" href="../farven-vintage/admin.html">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+          <span>vintage 管理へ</span>
+        </a>
+        <button class="logout-btn" id="logoutBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>ログアウト</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <!-- 商品管理 -->
+      <div class="tab-panel active" id="tab-products">
+        <div class="panel-head">
+          <div><div class="panel-title">商品管理</div><div class="panel-sub">キャンドル・ディフューザー等の追加・編集・決済リンク設定</div></div>
+          <button class="btn btn-primary" id="addProductBtn">+ 商品を追加</button>
+        </div>
+        <table class="product-table">
+          <thead><tr><th>商品名</th><th>香りの系統</th><th>価格</th><th>サイズ</th><th>状態</th><th>決済リンク</th><th></th></tr></thead>
+          <tbody id="productTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- サイト設定 -->
+      <div class="tab-panel" id="tab-site">
+        <div class="panel-head"><div><div class="panel-title">サイト設定</div><div class="panel-sub">文章・カラー・お知らせの編集</div></div></div>
+        <div class="settings-grid">
+          <div>
+            <div class="settings-card">
+              <div class="settings-card-title">ヒーローセクション</div>
+              <div class="form-group"><label class="form-label">メインタイトル</label><textarea class="form-control" id="cfgHeroPrimary" rows="3" placeholder="灯りと香りで、&#10;空間をつくる。"></textarea><div class="form-hint">改行は実際の改行で入力してください</div></div>
+              <div class="form-group"><label class="form-label">サブテキスト</label><input class="form-control" type="text" id="cfgHeroSub" placeholder="すべて手仕事。大阪から、オリジナルの香りを。"></div>
+              <div class="form-group"><label class="form-label">CTAボタンテキスト</label><input class="form-control" type="text" id="cfgHeroCta" placeholder="新着アイテムを見る"></div>
+            </div>
+            <div class="settings-card" style="margin-top:1.25rem">
+              <div class="settings-card-title">Aboutセクション</div>
+              <div class="form-group"><label class="form-label">About タイトル</label><input class="form-control" type="text" id="cfgAboutTitle" placeholder="香りは、記憶になる。"></div>
+              <div class="form-group"><label class="form-label">About 本文</label><textarea class="form-control" id="cfgAboutText" rows="6" placeholder="ブランドの説明文（空行で段落分け）"></textarea></div>
+            </div>
+          </div>
+          <div>
+            <div class="settings-card">
+              <div class="settings-card-title">カラー設定</div>
+              <div class="form-group"><label class="form-label">背景色</label><input type="color" id="cfgBgColor" value="#F6EFE7" style="width:100%;height:44px;border:1px solid #3A2418;cursor:pointer;padding:2px;background:none;"><div class="form-hint">推奨: ウォームアイボリー（#F6EFE7）</div></div>
+              <div class="form-group"><label class="form-label">メインカラー（テキスト・アクセント）</label><input type="color" id="cfgDarkColor" value="#261A10" style="width:100%;height:44px;border:1px solid #3A2418;cursor:pointer;padding:2px;background:none;"></div>
+            </div>
+            <div class="settings-card" style="margin-top:1.25rem">
+              <div class="settings-card-title">お知らせバナー</div>
+              <div class="form-group"><label class="checkbox-row"><input type="checkbox" id="cfgAnnActive"> バナーを表示する</label></div>
+              <div class="form-group"><label class="form-label">バナーテキスト</label><input class="form-control" type="text" id="cfgAnnText" placeholder="例: 新作キャンドル発売中！"></div>
+            </div>
+            <div class="settings-card" style="margin-top:1.25rem">
+              <div class="settings-card-title">通知テキスト</div>
+              <div class="form-group"><label class="form-label">カウントダウン下のテキスト</label><input class="form-control" type="text" id="cfgSatNote" placeholder="毎週土曜 12:00 に新作・再入荷情報をお届けします"></div>
+            </div>
+          </div>
+        </div>
+        <div class="save-bar">
+          <span class="save-bar-note">変更後、サイトをリロードすると反映されます</span>
+          <div style="display:flex;align-items:center;gap:1rem"><span id="saveStatusSite"></span><button class="btn btn-primary" id="saveSiteBtn">保存する</button></div>
+        </div>
+      </div>
+
+      <!-- 決済・SNS -->
+      <div class="tab-panel" id="tab-payment">
+        <div class="panel-head"><div><div class="panel-title">決済・SNS設定</div><div class="panel-sub">Stripe Payment Links・Instagram設定</div></div></div>
+        <div class="settings-card" style="margin-bottom:1.5rem">
+          <div class="settings-card-title">Instagram</div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Instagram ID（@なし）</label><input class="form-control" type="text" id="cfgIgId" placeholder="farven_candle"><div class="form-hint">例: farven_candle（@は不要）</div></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instagram 投稿URL（グリッドに表示・最大12件）</label>
+            <div class="form-hint" style="margin-bottom:.75rem">各投稿のURL（例: https://www.instagram.com/p/XXXXXXXX/）を貼り付けてください。</div>
+            <div class="ig-posts-grid" id="igPostsGrid"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:1rem"><button class="btn btn-primary" id="saveIgBtn">Instagram設定を保存</button></div>
+        </div>
+
+        <div class="panel-head" style="margin-top:2rem"><div><div class="panel-title" style="font-size:1.1rem">決済プラットフォーム</div><div class="panel-sub">各商品の「決済リンク」に購入URLを設定してください</div></div></div>
+        <div class="alert alert-info"><strong>設定の流れ：</strong> 下記のプラットフォームで商品を登録 → 購入リンクを取得 → 管理画面の各商品編集から「決済リンク」に貼り付け → 保存</div>
+        <div class="payment-cards">
+          <div class="payment-card">
+            <div class="payment-card-head"><div class="payment-icon" style="background:#635BFF;color:#fff;font-size:.8rem;">Str</div><div><h3>Stripe Payment Links <span class="platform-recommended">おすすめ</span></h3></div></div>
+            <p>クレジットカード・Apple Pay対応。手数料3.6%。月額固定費なし。</p>
+            <div class="payment-steps">
+              <div class="payment-step"><span class="step-n">1</span>stripe.com でアカウント作成</div>
+              <div class="payment-step"><span class="step-n">2</span>「Payment Links」から商品リンクを作成</div>
+              <div class="payment-step"><span class="step-n">3</span>生成されたURLを各商品の決済リンクに貼り付け</div>
+            </div>
+            <a class="guide-link" href="https://stripe.com/jp" target="_blank" rel="noopener">Stripeを始める →</a>
+          </div>
+          <div class="payment-card">
+            <div class="payment-card-head"><div class="payment-icon" style="background:#FF4E2A;color:#fff;font-size:.75rem;">BASE</div><div><h3>BASE（ベイス）</h3></div></div>
+            <p>日本最大級のECプラットフォーム。PayPay・コンビニ払い対応。初期費用・月額無料。</p>
+            <div class="payment-steps">
+              <div class="payment-step"><span class="step-n">1</span>base.me でショップ開設（無料）</div>
+              <div class="payment-step"><span class="step-n">2</span>商品を登録して公開</div>
+              <div class="payment-step"><span class="step-n">3</span>各商品URLをこのサイトに設定</div>
+            </div>
+            <a class="guide-link" href="https://thebase.com" target="_blank" rel="noopener">BASEを始める →</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- PRODUCT DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="form-drawer" id="formDrawer">
+  <div class="drawer-head"><span class="drawer-title" id="drawerTitle">商品を追加</span><button class="drawer-close" id="drawerClose">×</button></div>
+  <div class="drawer-body">
+    <form id="productForm" autocomplete="off">
+      <input type="hidden" id="pId">
+      <div class="form-group"><label class="form-label">商品名 *</label><input class="form-control" type="text" id="pName" placeholder="例: ヴァニラ アンバー" required></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">カテゴリ *</label>
+          <select class="form-control" id="pCategory">
+            <option value="candle">キャンドル</option>
+            <option value="diffuser">ディフューザー</option>
+            <option value="spray">ルームスプレー</option>
+            <option value="gift">ギフトセット</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">シーズン</label>
+          <select class="form-control" id="pSeason">
+            <option value="all">オールシーズン</option>
+            <option value="spring">春夏</option>
+            <option value="autumn">秋冬</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">価格（税込）*</label><input class="form-control" type="number" id="pPrice" placeholder="4800" min="0" required></div>
+        <div class="form-group"><label class="form-label">容量・サイズ</label><input class="form-control" type="text" id="pSize" placeholder="200g / 100ml / SET"></div>
+      </div>
+      <div class="form-section-title">香りの系統・素材タイプ</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">香りの系統（カラー）</label>
+          <select class="form-control" id="pColor">
+            <option value="floral">フローラル</option>
+            <option value="rose">ローズ</option>
+            <option value="amber">アンバー</option>
+            <option value="cedar">ウッディ・シダー</option>
+            <option value="citrus">シトラス</option>
+            <option value="lavender">ラベンダー</option>
+            <option value="linen">ムスク・リネン</option>
+            <option value="fresh">フレッシュ</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">素材タイプ</label>
+          <select class="form-control" id="pCondition">
+            <option value="SOY WAX">SOY WAX</option>
+            <option value="DIFFUSER">DIFFUSER</option>
+            <option value="SPRAY">SPRAY</option>
+            <option value="GIFT">GIFT SET</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-section-title">ステータス</div>
+      <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem">
+        <label class="checkbox-row"><input type="checkbox" id="pIsNew"> NEW バッジ</label>
+        <label class="checkbox-row"><input type="checkbox" id="pIsLastOne"> 残りわずかバッジ</label>
+        <label class="checkbox-row"><input type="checkbox" id="pIsSold"> SOLD OUT</label>
+      </div>
+      <div class="form-section-title">画像・決済</div>
+      <div class="form-group"><label class="form-label">商品画像URL</label><input class="form-control" type="url" id="pImageUrl" placeholder="https://... （省略時は香りカラーブロックで表示）"><div class="form-hint">直接リンク可能な画像URLを入力</div></div>
+      <div class="form-group"><label class="form-label">決済リンク（Stripe / BASE / STORES）</label><input class="form-control" type="url" id="pPaymentLink" placeholder="https://buy.stripe.com/... または BASEの商品URL"><div class="form-hint">「今すぐ購入」ボタンの遷移先。未設定時は「準備中」と表示されます。</div></div>
+      <div class="form-section-title">商品説明</div>
+      <div class="form-group"><textarea class="form-control" id="pDescription" rows="4" placeholder="香りの特徴、使用シーン、ブレンドのこだわりなど..."></textarea></div>
+      <div class="form-section-title">詳細情報（燃焼時間・香りのノートなど）</div>
+      <div class="measurements-editor" id="measurementsEditor"></div>
+      <button type="button" class="add-measure" id="addMeasureBtn" style="margin-top:.5rem">+ 詳細を追加</button>
+      <div class="form-actions"><button type="button" class="btn btn-ghost" id="cancelDrawerBtn">キャンセル</button><button type="submit" class="btn btn-primary">保存する</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="adminToast"></div>
+
+<script>
+/* ── AUTH ── */
+const _c = { i:'ZmFydmVuXzEyMjQ=', p:'RnVua28wMjE2' };
+function checkCreds(id,pw){ return id===atob(_c.i)&&pw===atob(_c.p); }
+function isLoggedIn(){ return sessionStorage.getItem('fvc_auth')==='1'; }
+function setLoggedIn(){ sessionStorage.setItem('fvc_auth','1'); }
+function clearLogin(){ sessionStorage.removeItem('fvc_auth'); }
+
+/* ── COLOR MAP FOR SCENT ── */
+const COLOR_MAP = {
+  floral:'#D4A8B0', rose:'#E0B8C0', amber:'#C4905A', cedar:'#8A7060',
+  citrus:'#C8B460', lavender:'#B8A8C8', linen:'#E8E0D5', fresh:'#8AB8A8'
+};
+const COLOR_LABEL = {
+  floral:'フローラル', rose:'ローズ', amber:'アンバー', cedar:'ウッディ',
+  citrus:'シトラス', lavender:'ラベンダー', linen:'ムスク', fresh:'フレッシュ'
+};
+
+/* ── DATA ── */
+function loadProducts(){
+  try{ const s=localStorage.getItem('farven_candle_products'); return s?JSON.parse(s):getDefaults(); }catch{ return getDefaults(); }
+}
+function saveProducts(products){ localStorage.setItem('farven_candle_products', JSON.stringify(products)); }
+function loadConfig(){
+  try{ return JSON.parse(localStorage.getItem('farven_candle_config')||'{}'); }catch{ return {}; }
+}
+function saveConfig(cfg){ localStorage.setItem('farven_candle_config', JSON.stringify(cfg)); }
+
+function getDefaults(){
+  return [
+    {id:1,name:'ヴァニラ アンバー',category:'candle',price:4800,color:'amber',colorHex:'#C4905A',colorLabel:'アンバー',size:'200g',condition:'SOY WAX',season:'all',isNew:true,isLastOne:false,isSold:false,description:'甘く温かいヴァニラをベースに、アンバーとサンダルウッドが重なる深みのある香り。',measurements:{燃焼時間:'約40時間',香りのノート:'ヴァニラ・アンバー・サンダルウッド',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''},
+    {id:2,name:'ホワイト リネン',category:'candle',price:3200,color:'linen',colorHex:'#E8E0D5',colorLabel:'リネン',size:'120g',condition:'SOY WAX',season:'all',isNew:true,isLastOne:false,isSold:false,description:'清潔感のあるリネンにムスクとシトラスを合わせた、爽やかで上品な香り。',measurements:{燃焼時間:'約25時間',香りのノート:'リネン・ムスク・シトラス',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''},
+    {id:3,name:'ローズ ペタル',category:'candle',price:4500,color:'rose',colorHex:'#D4A8B0',colorLabel:'ローズ',size:'180g',condition:'SOY WAX',season:'spring',isNew:true,isLastOne:true,isSold:false,description:'フレッシュなローズに柔らかいパウダーを重ねた、華やかで甘すぎない香り。',measurements:{燃焼時間:'約35時間',香りのノート:'ローズ・パウダー・ムスク',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''},
+    {id:4,name:'シダーウッド & スモーク',category:'candle',price:5800,color:'cedar',colorHex:'#8A7060',colorLabel:'シダー',size:'250g',condition:'SOY WAX',season:'autumn',isNew:true,isLastOne:false,isSold:false,description:'深みのあるシダーウッドに微かなスモークノートが混ざる、ユニセックスな香り。',measurements:{燃焼時間:'約50時間',香りのノート:'シダーウッド・スモーク・ベチバー',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''},
+    {id:5,name:'ラベンダー & ムスク',category:'candle',price:3500,color:'lavender',colorHex:'#B8A8C8',colorLabel:'ラベンダー',size:'120g',condition:'SOY WAX',season:'all',isNew:false,isLastOne:true,isSold:false,description:'ラベンダーとムスクが調和した、リラックスタイムのための香り。',measurements:{燃焼時間:'約25時間',香りのノート:'ラベンダー・ムスク・ウッド',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''},
+    {id:6,name:'ベルガモット シトラス',category:'candle',price:4200,color:'citrus',colorHex:'#C8B460',colorLabel:'シトラス',size:'150g',condition:'SOY WAX',season:'spring',isNew:false,isLastOne:false,isSold:false,description:'爽やかなベルガモットとシトラスのブレンド。朝の空間を明るくする清々しい香り。',measurements:{燃焼時間:'約30時間',香りのノート:'ベルガモット・レモン・グリーン',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''},
+    {id:7,name:'ジャスミン & ウード',category:'candle',price:6800,color:'floral',colorHex:'#C8A880',colorLabel:'フローラル',size:'200g',condition:'SOY WAX',season:'all',isNew:false,isLastOne:true,isSold:false,description:'ジャスミンの透明感にウードの深みが溶け合う、贅沢な夜のための一本。',measurements:{燃焼時間:'約40時間',香りのノート:'ジャスミン・ウード・アンバー',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''},
+    {id:8,name:'ローズ & パウダー',category:'diffuser',price:5500,color:'rose',colorHex:'#E0B8C0',colorLabel:'ローズ',size:'100ml',condition:'DIFFUSER',season:'all',isNew:false,isLastOne:false,isSold:false,description:'華やかなローズとパウダリーなムスクのリードディフューザー。玄関やリビングに。',measurements:{内容量:'100ml',香りのノート:'ローズ・パウダー・ムスク',持続期間:'約60日'},paymentLink:'',imageUrl:''},
+    {id:9,name:'リネン & シーソルト',category:'spray',price:3800,color:'linen',colorHex:'#DCE8E8',colorLabel:'アクア',size:'100ml',condition:'SPRAY',season:'all',isNew:false,isLastOne:false,isSold:false,description:'海を感じるシーソルトとリネンのルームスプレー。ひと吹きで空間がリフレッシュ。',measurements:{内容量:'100ml',香りのノート:'リネン・シーソルト・シトラス',使用方法:'空間に数回スプレー'},paymentLink:'',imageUrl:''},
+    {id:10,name:'サンダルウッド バニラ',category:'candle',price:7500,color:'amber',colorHex:'#B87840',colorLabel:'ウッドアンバー',size:'300g',condition:'SOY WAX',season:'autumn',isNew:false,isLastOne:false,isSold:false,description:'サンダルウッドにヴァニラのふくよかさが寄り添う、長く愛せる定番ブレンド。',measurements:{燃焼時間:'約60時間',香りのノート:'サンダルウッド・ヴァニラ・パチュリ',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''},
+    {id:11,name:'ウッド & アンバー ギフトセット',category:'gift',price:12800,color:'cedar',colorHex:'#9A7858',colorLabel:'ウッディ',size:'SET',condition:'GIFT',season:'all',isNew:false,isLastOne:true,isSold:false,description:'ウッド系キャンドル2本＋マッチ入りギフトボックス。ラッピング込みの人気セット。',measurements:{内容物:'キャンドル×2・マッチ',燃焼時間:'約40時間×2',ラッピング:'専用BOX付き'},paymentLink:'',imageUrl:''},
+    {id:12,name:'ミント & アクアティック',category:'candle',price:4000,color:'fresh',colorHex:'#8AB8A8',colorLabel:'フレッシュ',size:'150g',condition:'SOY WAX',season:'spring',isNew:false,isLastOne:false,isSold:false,description:'クリアなミントとアクアティックノートが清々しい、夏向けのリフレッシュ系キャンドル。',measurements:{燃焼時間:'約30時間',香りのノート:'ミント・アクア・シトラス',素材:'ソイワックス100%'},paymentLink:'',imageUrl:''}
+  ];
+}
+
+/* ── TOAST ── */
+let toastTimer;
+function adminToast(msg){
+  const el=document.getElementById('adminToast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+/* ── TABS ── */
+function switchTab(tabId){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tabId)?.classList.add('active');
+  document.querySelector(`.nav-item[data-tab="${tabId}"]`)?.classList.add('active');
+  if(tabId==='site') loadSiteForm();
+  if(tabId==='payment') loadPaymentForm();
+}
+
+/* ── PRODUCT TABLE ── */
+const catMap={candle:'キャンドル',diffuser:'ディフューザー',spray:'ルームスプレー',gift:'ギフトセット',other:'その他'};
+
+function renderProductTable(){
+  const products=loadProducts();
+  const tbody=document.getElementById('productTableBody');
+  if(!products.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🕯️</div><p>商品がまだありません。「商品を追加」から登録してください。</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=products.map(p=>`
+    <tr>
+      <td class="product-name-cell">${p.name}<small>${catMap[p.category]||p.category}</small></td>
+      <td><span class="color-dot" style="background:${p.colorHex||'#aaa'}"></span>${p.colorLabel||p.color}</td>
+      <td>¥${Number(p.price).toLocaleString()}</td>
+      <td>${p.size||'—'}</td>
+      <td>${p.isSold?'<span class="status-badge status-sold">SOLD</span>':'<span class="status-badge status-active">在庫あり</span>'}${p.isNew?'<span class="status-badge status-new" style="margin-left:3px">NEW</span>':''}</td>
+      <td>${p.paymentLink?'<span class="link-status">✓ 設定済</span>':'<span class="link-missing">未設定</span>'}</td>
+      <td class="actions-cell">
+        <button class="btn btn-ghost btn-sm" onclick="editProduct(${p.id})">編集</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">削除</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ── DRAWER ── */
+function openDrawer(t){ document.getElementById('drawerTitle').textContent=t; document.getElementById('formDrawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); }
+function closeDrawer(){ document.getElementById('formDrawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); document.getElementById('productForm').reset(); document.getElementById('pId').value=''; renderMeasurements([]); }
+
+/* ── MEASUREMENTS ── */
+let measureData=[];
+function renderMeasurements(data){
+  measureData=[...data];
+  const c=document.getElementById('measurementsEditor');
+  c.innerHTML='';
+  measureData.forEach((m,i)=>{
+    const row=document.createElement('div'); row.className='measurement-row';
+    row.innerHTML=`<input class="form-control" type="text" placeholder="項目（例: 燃焼時間）" value="${m.key||''}" oninput="measureData[${i}].key=this.value" style="flex:1.2"><input class="form-control" type="text" placeholder="内容（例: 約40時間）" value="${m.val||''}" oninput="measureData[${i}].val=this.value" style="flex:1"><button type="button" class="remove-measure" onclick="removeMeasurement(${i})">−</button>`;
+    c.appendChild(row);
+  });
+}
+function addMeasurement(){ measureData.push({key:'',val:''}); renderMeasurements(measureData); }
+function removeMeasurement(i){ measureData.splice(i,1); renderMeasurements(measureData); }
+
+/* ── ADD/EDIT/DELETE ── */
+function showAddProduct(){ document.getElementById('productForm').reset(); document.getElementById('pId').value=''; renderMeasurements([]); openDrawer('商品を追加'); }
+
+function editProduct(id){
+  const products=loadProducts(); const p=products.find(x=>x.id===id); if(!p) return;
+  document.getElementById('pId').value=p.id;
+  document.getElementById('pName').value=p.name||'';
+  document.getElementById('pCategory').value=p.category||'candle';
+  document.getElementById('pSeason').value=p.season||'all';
+  document.getElementById('pPrice').value=p.price||'';
+  document.getElementById('pSize').value=p.size||'';
+  document.getElementById('pColor').value=p.color||'amber';
+  document.getElementById('pCondition').value=p.condition||'SOY WAX';
+  document.getElementById('pIsNew').checked=!!p.isNew;
+  document.getElementById('pIsLastOne').checked=!!p.isLastOne;
+  document.getElementById('pIsSold').checked=!!p.isSold;
+  document.getElementById('pImageUrl').value=p.imageUrl||'';
+  document.getElementById('pPaymentLink').value=p.paymentLink||'';
+  document.getElementById('pDescription').value=p.description||'';
+  renderMeasurements(Object.entries(p.measurements||{}).map(([key,val])=>({key,val})));
+  openDrawer('商品を編集');
+}
+
+function deleteProduct(id){
+  if(!confirm('この商品を削除しますか？')) return;
+  let products=loadProducts(); products=products.filter(p=>p.id!==id);
+  saveProducts(products); renderProductTable(); adminToast('削除しました');
+}
+
+document.getElementById('productForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const products=loadProducts();
+  const idVal=document.getElementById('pId').value;
+  const measurements={};
+  measureData.forEach(m=>{ if(m.key) measurements[m.key]=m.val; });
+  const colorKey=document.getElementById('pColor').value;
+
+  const product={
+    id:        idVal?Number(idVal):Date.now(),
+    name:      document.getElementById('pName').value.trim(),
+    category:  document.getElementById('pCategory').value,
+    season:    document.getElementById('pSeason').value,
+    price:     Number(document.getElementById('pPrice').value),
+    size:      document.getElementById('pSize').value.trim(),
+    color:     colorKey,
+    colorLabel:COLOR_LABEL[colorKey]||document.getElementById('pColor').options[document.getElementById('pColor').selectedIndex].text,
+    colorHex:  COLOR_MAP[colorKey]||'#888888',
+    condition: document.getElementById('pCondition').value,
+    isNew:     document.getElementById('pIsNew').checked,
+    isLastOne: document.getElementById('pIsLastOne').checked,
+    isSold:    document.getElementById('pIsSold').checked,
+    imageUrl:  document.getElementById('pImageUrl').value.trim(),
+    paymentLink:document.getElementById('pPaymentLink').value.trim(),
+    description:document.getElementById('pDescription').value.trim(),
+    measurements,
+  };
+
+  if(idVal){ const idx=products.findIndex(p=>p.id===Number(idVal)); if(idx>=0) products[idx]=product; else products.push(product); }
+  else products.push(product);
+  saveProducts(products); renderProductTable(); closeDrawer(); adminToast('保存しました ✓');
+});
+
+/* ── SITE FORM ── */
+function loadSiteForm(){
+  const cfg=loadConfig();
+  document.getElementById('cfgHeroPrimary').value=cfg.heroPrimary||'灯りと香りで、\n空間をつくる。';
+  document.getElementById('cfgHeroSub').value=cfg.heroSub||'すべて手仕事。大阪から、オリジナルの香りを。';
+  document.getElementById('cfgHeroCta').value=cfg.heroCta||'新着アイテムを見る';
+  document.getElementById('cfgAboutTitle').value=cfg.aboutTitle||'';
+  document.getElementById('cfgAboutText').value=cfg.aboutText||'';
+  document.getElementById('cfgBgColor').value=cfg.bgColor||'#F6EFE7';
+  document.getElementById('cfgDarkColor').value=cfg.darkColor||'#261A10';
+  document.getElementById('cfgAnnActive').checked=!!cfg.announcementActive;
+  document.getElementById('cfgAnnText').value=cfg.announcement||'';
+  document.getElementById('cfgSatNote').value=cfg.saturdayNote||'';
+}
+
+document.getElementById('saveSiteBtn').addEventListener('click',()=>{
+  const cfg=loadConfig();
+  cfg.heroPrimary=document.getElementById('cfgHeroPrimary').value;
+  cfg.heroSub=document.getElementById('cfgHeroSub').value;
+  cfg.heroCta=document.getElementById('cfgHeroCta').value;
+  cfg.aboutTitle=document.getElementById('cfgAboutTitle').value;
+  cfg.aboutText=document.getElementById('cfgAboutText').value;
+  cfg.bgColor=document.getElementById('cfgBgColor').value;
+  cfg.darkColor=document.getElementById('cfgDarkColor').value;
+  cfg.announcementActive=document.getElementById('cfgAnnActive').checked;
+  cfg.announcement=document.getElementById('cfgAnnText').value;
+  cfg.saturdayNote=document.getElementById('cfgSatNote').value;
+  saveConfig(cfg);
+  document.getElementById('saveStatusSite').textContent='✓ 保存しました';
+  setTimeout(()=>{ document.getElementById('saveStatusSite').textContent=''; },3000);
+  adminToast('サイト設定を保存しました ✓');
+});
+
+/* ── PAYMENT/SNS FORM ── */
+function loadPaymentForm(){
+  const cfg=loadConfig();
+  const igId=document.getElementById('cfgIgId'); if(igId) igId.value=cfg.instagramId||'farven_candle';
+  const grid=document.getElementById('igPostsGrid'); const posts=cfg.igPosts||[];
+  grid.innerHTML='';
+  for(let i=0;i<12;i++){
+    const cell=document.createElement('div'); cell.className='ig-post-input-cell';
+    cell.innerHTML=`<span class="ig-post-num">投稿 ${i+1}</span><input class="form-control" type="url" id="igPost${i}" placeholder="https://www.instagram.com/p/..." value="${posts[i]||''}">`;
+    grid.appendChild(cell);
+  }
+}
+
+document.getElementById('saveIgBtn').addEventListener('click',()=>{
+  const cfg=loadConfig();
+  cfg.instagramId=document.getElementById('cfgIgId')?.value.trim().replace('@','')||'farven_candle';
+  cfg.igPosts=[];
+  for(let i=0;i<12;i++) cfg.igPosts.push(document.getElementById('igPost'+i)?.value.trim()||'');
+  saveConfig(cfg); adminToast('Instagram設定を保存しました ✓');
+});
+
+/* ── INIT ── */
+function initDashboard(){
+  renderProductTable();
+  document.getElementById('addProductBtn').addEventListener('click',showAddProduct);
+  document.getElementById('drawerClose').addEventListener('click',closeDrawer);
+  document.getElementById('cancelDrawerBtn').addEventListener('click',closeDrawer);
+  document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
+  document.getElementById('addMeasureBtn').addEventListener('click',addMeasurement);
+  document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click',()=>switchTab(item.dataset.tab)));
+  document.getElementById('logoutBtn').addEventListener('click',()=>{ clearLogin(); location.reload(); });
+}
+function showLoginScreen(){ document.getElementById('loginScreen').style.display='flex'; document.getElementById('dashboard').style.display='none'; }
+function showDashboard(){ document.getElementById('loginScreen').style.display='none'; document.getElementById('dashboard').style.display='block'; initDashboard(); }
+
+document.getElementById('loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const id=document.getElementById('adminId').value.trim();
+  const pw=document.getElementById('adminPw').value;
+  if(checkCreds(id,pw)){ setLoggedIn(); showDashboard(); }
+  else{ document.getElementById('loginError').style.display='block'; document.getElementById('adminPw').value=''; }
+});
+
+document.addEventListener('DOMContentLoaded',()=>{ if(isLoggedIn()) showDashboard(); else showLoginScreen(); });
+</script>
+</body>
+</html>
