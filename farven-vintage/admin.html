@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>farven vintage — 管理画面</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #F7EAE3;
+      --dark:    #181210;
+      --mid:     #6B5F5A;
+      --muted:   #A89B96;
+      --border:  #DDD0CA;
+      --white:   #FFFFFF;
+      --admin-bg:#1C1A18;
+      --admin-sidebar:#242220;
+      --admin-border:#333;
+      --success: #4A8C5A;
+      --danger:  #B04040;
+      --accent:  #F7EAE3;
+      --ff-serif:'Cormorant Garamond',serif;
+      --ff-sans: 'Jost',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:var(--ff-sans);-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit}
+    button,input,select,textarea{font-family:inherit}
+
+    /* ── LOGIN ─────────────────────────────────────────────── */
+    #loginScreen{
+      min-height:100vh;background:var(--bg);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .login-card{
+      width:360px;padding:3rem;
+      background:#fff;box-shadow:0 4px 40px rgba(24,18,16,.1);
+      text-align:center;
+    }
+    .login-logo{
+      font-family:var(--ff-serif);font-size:1.5rem;font-weight:300;
+      letter-spacing:.14em;margin-bottom:.25rem;
+    }
+    .login-sub{
+      font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--muted);margin-bottom:2.5rem;
+    }
+    .login-card form{display:flex;flex-direction:column;gap:1rem}
+    .login-input{
+      width:100%;padding:.85rem 1rem;
+      border:1px solid var(--border);background:transparent;
+      font-size:.82rem;outline:none;letter-spacing:.04em;
+      transition:border-color .2s;
+    }
+    .login-input:focus{border-color:var(--dark)}
+    .login-btn{
+      background:var(--dark);color:var(--bg);
+      padding:.9rem;font-size:.7rem;font-weight:500;
+      letter-spacing:.18em;text-transform:uppercase;
+      cursor:pointer;border:none;transition:opacity .2s;
+    }
+    .login-btn:hover{opacity:.8}
+    #loginError{
+      color:var(--danger);font-size:.72rem;
+      letter-spacing:.06em;margin-top:.25rem;
+    }
+
+    /* ── DASHBOARD LAYOUT ──────────────────────────────────── */
+    #dashboard{display:none;height:100vh;overflow:hidden}
+    .admin-wrap{display:flex;height:100%;background:var(--admin-bg)}
+
+    /* Sidebar */
+    .sidebar{
+      width:220px;flex-shrink:0;background:var(--admin-sidebar);
+      display:flex;flex-direction:column;border-right:1px solid var(--admin-border);
+    }
+    .sidebar-logo{
+      padding:1.5rem 1.25rem;border-bottom:1px solid var(--admin-border);
+    }
+    .sidebar-logo span{
+      font-family:var(--ff-serif);font-size:1rem;font-weight:300;
+      letter-spacing:.12em;color:var(--accent);display:block;
+    }
+    .sidebar-logo small{
+      font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;
+      color:#666;margin-top:2px;display:block;
+    }
+    .sidebar-nav{flex:1;padding:1rem 0}
+    .nav-item{
+      display:flex;align-items:center;gap:.75rem;
+      padding:.75rem 1.25rem;font-size:.72rem;font-weight:400;
+      letter-spacing:.08em;color:#888;cursor:pointer;
+      transition:background .15s,color .15s;border-left:2px solid transparent;
+    }
+    .nav-item:hover{background:rgba(247,234,227,.04);color:#ccc}
+    .nav-item.active{background:rgba(247,234,227,.07);color:var(--accent);border-left-color:var(--accent)}
+    .nav-item svg{flex-shrink:0}
+    .sidebar-footer{
+      padding:1rem 1.25rem;border-top:1px solid var(--admin-border);
+      display:flex;flex-direction:column;gap:.6rem;
+    }
+    .sidebar-link{
+      font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;
+      color:#666;transition:color .15s;display:flex;align-items:center;gap:.5rem;
+    }
+    .sidebar-link:hover{color:var(--accent)}
+    .logout-btn{
+      font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;
+      color:#555;background:none;border:none;cursor:pointer;
+      text-align:left;display:flex;align-items:center;gap:.5rem;
+      transition:color .15s;
+    }
+    .logout-btn:hover{color:#B04040}
+
+    /* Main content */
+    .admin-main{flex:1;overflow-y:auto;background:var(--admin-bg)}
+
+    /* Tab panels */
+    .tab-panel{display:none;padding:2rem;max-width:1100px}
+    .tab-panel.active{display:block}
+
+    /* Panel header */
+    .panel-head{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:2rem;padding-bottom:1.25rem;
+      border-bottom:1px solid var(--admin-border);
+    }
+    .panel-title{
+      font-family:var(--ff-serif);font-size:1.5rem;font-weight:300;
+      color:var(--accent);letter-spacing:.04em;
+    }
+    .panel-sub{
+      font-size:.68rem;color:#666;letter-spacing:.08em;margin-top:.25rem;
+    }
+
+    /* ── BUTTONS ────────────────────────────────────────────── */
+    .btn{
+      display:inline-flex;align-items:center;gap:.4rem;
+      padding:.6rem 1.2rem;font-size:.68rem;font-weight:500;
+      letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
+      border:none;transition:opacity .2s;
+    }
+    .btn-primary{background:var(--accent);color:var(--dark)}
+    .btn-primary:hover{opacity:.85}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-danger:hover{opacity:.85}
+    .btn-ghost{background:transparent;color:#888;border:1px solid #444}
+    .btn-ghost:hover{border-color:#888;color:#ccc}
+    .btn-sm{padding:.4rem .8rem;font-size:.62rem}
+
+    /* ── PRODUCT TABLE ──────────────────────────────────────── */
+    .product-table{width:100%;border-collapse:collapse}
+    .product-table th{
+      font-size:.6rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+      color:#555;padding:.75rem .75rem;text-align:left;
+      border-bottom:1px solid var(--admin-border);
+    }
+    .product-table td{
+      padding:.75rem;border-bottom:1px solid #2a2826;
+      font-size:.75rem;color:#aaa;vertical-align:middle;
+    }
+    .product-table tr:hover td{background:rgba(255,255,255,.02)}
+    .product-name-cell{color:#ddd;font-weight:400;max-width:220px}
+    .product-name-cell small{display:block;font-size:.62rem;color:#555;margin-top:2px}
+    .color-dot{
+      width:16px;height:16px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.1);display:inline-block;vertical-align:middle;margin-right:6px;
+    }
+    .status-badge{
+      display:inline-block;font-size:.58rem;font-weight:500;
+      letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:1px;
+    }
+    .status-active{background:rgba(74,140,90,.2);color:#6db87d}
+    .status-sold{background:rgba(176,64,64,.2);color:#c97070}
+    .status-new{background:rgba(247,234,227,.1);color:#c4b4a8}
+    .actions-cell{display:flex;gap:.4rem;align-items:center}
+    .link-status{
+      font-size:.62rem;color:#4A8;letter-spacing:.06em;
+    }
+    .link-missing{font-size:.62rem;color:#888;letter-spacing:.06em}
+
+    /* ── FORM DRAWER ────────────────────────────────────────── */
+    .drawer-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;
+      opacity:0;pointer-events:none;transition:opacity .25s;
+    }
+    .drawer-overlay.open{opacity:1;pointer-events:all}
+    .form-drawer{
+      position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);
+      background:#28261F;z-index:51;overflow-y:auto;
+      transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+      border-left:1px solid var(--admin-border);
+    }
+    .form-drawer.open{transform:translateX(0)}
+    .drawer-head{
+      position:sticky;top:0;background:#28261F;z-index:2;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:1.25rem 1.5rem;border-bottom:1px solid var(--admin-border);
+    }
+    .drawer-title{
+      font-size:.8rem;font-weight:500;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--accent);
+    }
+    .drawer-close{
+      font-size:1.3rem;color:#666;background:none;border:none;cursor:pointer;
+      padding:4px;transition:color .15s;
+    }
+    .drawer-close:hover{color:#ccc}
+    .drawer-body{padding:1.5rem}
+
+    /* Form elements */
+    .form-group{margin-bottom:1.25rem}
+    .form-label{
+      display:block;font-size:.62rem;font-weight:500;
+      letter-spacing:.14em;text-transform:uppercase;
+      color:#666;margin-bottom:.5rem;
+    }
+    .form-control{
+      width:100%;padding:.7rem .85rem;
+      background:#1C1A18;border:1px solid #3a3836;
+      color:#ddd;font-size:.8rem;outline:none;
+      transition:border-color .2s;
+    }
+    .form-control:focus{border-color:#666}
+    .form-control::placeholder{color:#444}
+    textarea.form-control{resize:vertical;min-height:80px;line-height:1.6}
+    select.form-control{appearance:none;cursor:pointer}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .form-hint{font-size:.62rem;color:#555;margin-top:.4rem;line-height:1.5;letter-spacing:.04em}
+    .checkbox-row{
+      display:flex;align-items:center;gap:.6rem;
+      font-size:.75rem;color:#999;cursor:pointer;
+    }
+    .checkbox-row input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+    .form-section-title{
+      font-size:.6rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+      color:#555;margin:1.5rem 0 .75rem;padding-bottom:.5rem;
+      border-bottom:1px solid #2a2826;
+    }
+    .color-picker-row{display:flex;align-items:center;gap:.75rem}
+    input[type=color]{
+      width:40px;height:40px;border:none;cursor:pointer;
+      background:none;padding:0;
+    }
+
+    /* Measurements */
+    .measurements-editor{display:flex;flex-direction:column;gap:.5rem}
+    .measurement-row{display:flex;gap:.5rem;align-items:center}
+    .measurement-row input{flex:1;min-width:0}
+    .remove-measure{
+      width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+      background:none;border:1px solid #444;color:#666;cursor:pointer;
+      font-size:.9rem;flex-shrink:0;transition:border-color .15s,color .15s;
+    }
+    .remove-measure:hover{border-color:var(--danger);color:var(--danger)}
+    .add-measure{
+      font-size:.62rem;color:#555;background:none;border:1px dashed #333;
+      padding:.45rem;cursor:pointer;transition:border-color .15s,color .15s;text-align:center;
+    }
+    .add-measure:hover{border-color:#666;color:#999}
+
+    .form-actions{
+      display:flex;gap:.75rem;justify-content:flex-end;
+      margin-top:2rem;padding-top:1.25rem;
+      border-top:1px solid var(--admin-border);
+    }
+
+    /* ── SETTINGS FORM ──────────────────────────────────────── */
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+    .settings-card{
+      background:#242220;border:1px solid var(--admin-border);padding:1.5rem;
+    }
+    .settings-card-title{
+      font-size:.6rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+      color:#666;margin-bottom:1.25rem;padding-bottom:.75rem;
+      border-bottom:1px solid #2a2826;
+    }
+    .save-bar{
+      position:sticky;bottom:0;background:rgba(24,22,20,.95);backdrop-filter:blur(8px);
+      padding:1rem 2rem;border-top:1px solid var(--admin-border);
+      display:flex;align-items:center;justify-content:space-between;
+      margin-top:2rem;
+    }
+    .save-bar-note{font-size:.68rem;color:#555;letter-spacing:.06em}
+    #saveStatus{font-size:.68rem;color:var(--success);letter-spacing:.06em;min-width:100px;text-align:right}
+
+    /* ── PAYMENT GUIDE ──────────────────────────────────────── */
+    .payment-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2rem}
+    .payment-card{
+      background:#242220;border:1px solid var(--admin-border);padding:1.5rem;
+    }
+    .payment-card-head{
+      display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;
+    }
+    .payment-icon{
+      width:40px;height:40px;border-radius:4px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.1rem;font-weight:700;
+    }
+    .payment-card h3{font-size:.85rem;font-weight:500;color:var(--accent)}
+    .payment-card p{font-size:.72rem;color:#888;line-height:1.7;letter-spacing:.04em}
+    .payment-steps{margin-top:1rem;display:flex;flex-direction:column;gap:.5rem}
+    .payment-step{
+      display:flex;gap:.6rem;font-size:.7rem;color:#888;line-height:1.6;
+    }
+    .step-n{
+      min-width:20px;height:20px;border-radius:50%;
+      background:rgba(247,234,227,.08);color:#999;
+      display:flex;align-items:center;justify-content:center;
+      font-size:.6rem;flex-shrink:0;margin-top:1px;
+    }
+    .platform-recommended{
+      display:inline-block;font-size:.55rem;font-weight:500;
+      letter-spacing:.12em;text-transform:uppercase;
+      background:rgba(247,234,227,.08);color:#c4b4a8;
+      padding:2px 6px;margin-left:.5rem;
+    }
+    .guide-link{
+      display:inline-flex;align-items:center;gap:.3rem;
+      font-size:.68rem;color:#888;border-bottom:1px solid #444;
+      padding-bottom:1px;margin-top:.75rem;transition:color .15s,border-color .15s;
+    }
+    .guide-link:hover{color:var(--accent);border-color:var(--accent)}
+
+    /* ── IG POSTS EDITOR ────────────────────────────────────── */
+    .ig-posts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1rem}
+    .ig-post-input-cell{display:flex;flex-direction:column;gap:.4rem}
+    .ig-post-num{font-size:.58rem;color:#555;letter-spacing:.1em}
+
+    /* ── ALERT ──────────────────────────────────────────────── */
+    .alert{
+      padding:.85rem 1.1rem;font-size:.72rem;letter-spacing:.04em;
+      border-left:3px solid;margin-bottom:1.25rem;line-height:1.6;
+    }
+    .alert-info{background:rgba(74,140,90,.08);border-color:var(--success);color:#8ec89b}
+    .alert-warn{background:rgba(176,64,64,.08);border-color:var(--danger);color:#c97070}
+    .alert strong{font-weight:500}
+
+    /* ── TOAST ──────────────────────────────────────────────── */
+    #adminToast{
+      position:fixed;bottom:2rem;left:50%;
+      transform:translateX(-50%) translateY(20px);
+      background:var(--accent);color:var(--dark);
+      font-size:.72rem;letter-spacing:.1em;
+      padding:.8rem 1.75rem;z-index:200;
+      opacity:0;pointer-events:none;
+      transition:opacity .3s,transform .3s;white-space:nowrap;
+    }
+    #adminToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* ── EMPTY STATE ────────────────────────────────────────── */
+    .empty-state{
+      text-align:center;padding:4rem 2rem;color:#444;
+    }
+    .empty-state-icon{font-size:2rem;margin-bottom:1rem;opacity:.4}
+    .empty-state p{font-size:.78rem;letter-spacing:.06em;line-height:1.7}
+
+    /* Responsive */
+    @media(max-width:700px){
+      .sidebar{width:56px}
+      .nav-item span,.sidebar-logo span,.sidebar-logo small,.sidebar-link span,.logout-btn span,.sidebar-footer .sidebar-link span{display:none}
+      .nav-item{justify-content:center;padding:.75rem 0}
+      .settings-grid{grid-template-columns:1fr}
+      .form-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== LOGIN ========== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">farven vintage</div>
+    <div class="login-sub">管理画面</div>
+    <form id="loginForm">
+      <input class="login-input" type="text"     id="adminId" placeholder="ログインID"  autocomplete="username">
+      <input class="login-input" type="password" id="adminPw" placeholder="パスワード" autocomplete="current-password">
+      <button class="login-btn" type="submit">ログイン</button>
+      <p id="loginError" style="display:none;color:#B04040;font-size:.72rem;margin-top:.25rem;">IDまたはパスワードが正しくありません</p>
+    </form>
+  </div>
+</div>
+
+<!-- ========== DASHBOARD ========== -->
+<div id="dashboard">
+  <div class="admin-wrap">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span>farven vintage</span>
+        <small>admin panel</small>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-item active" data-tab="products">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/></svg>
+          <span>商品管理</span>
+        </div>
+        <div class="nav-item" data-tab="site">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>サイト設定</span>
+        </div>
+        <div class="nav-item" data-tab="payment">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span>決済・SNS</span>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <a class="sidebar-link" href="index.html" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <span>サイトを確認</span>
+        </a>
+        <button class="logout-btn" id="logoutBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>ログアウト</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+
+      <!-- ── 商品管理 ── -->
+      <div class="tab-panel active" id="tab-products">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">商品管理</div>
+            <div class="panel-sub">商品の追加・編集・削除と決済リンクの設定</div>
+          </div>
+          <button class="btn btn-primary" id="addProductBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            商品を追加
+          </button>
+        </div>
+
+        <div id="productListWrap">
+          <table class="product-table">
+            <thead>
+              <tr>
+                <th>商品名</th>
+                <th>カラー</th>
+                <th>価格</th>
+                <th>サイズ</th>
+                <th>状態</th>
+                <th>決済リンク</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="productTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── サイト設定 ── -->
+      <div class="tab-panel" id="tab-site">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">サイト設定</div>
+            <div class="panel-sub">文章・カラー・お知らせの編集</div>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <div>
+            <div class="settings-card">
+              <div class="settings-card-title">ヒーローセクション</div>
+              <div class="form-group">
+                <label class="form-label">メインタイトル</label>
+                <textarea class="form-control" id="cfgHeroPrimary" rows="3" placeholder="売り場ではなく、&#10;倉庫を体験に変える。"></textarea>
+                <div class="form-hint">改行は実際の改行で入力してください</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">サブテキスト</label>
+                <input class="form-control" type="text" id="cfgHeroSub" placeholder="探す古着屋ではなく、選べる古着屋。">
+              </div>
+              <div class="form-group">
+                <label class="form-label">CTAボタンテキスト</label>
+                <input class="form-control" type="text" id="cfgHeroCta" placeholder="最新入荷を見る">
+              </div>
+            </div>
+
+            <div class="settings-card" style="margin-top:1.25rem">
+              <div class="settings-card-title">Aboutセクション</div>
+              <div class="form-group">
+                <label class="form-label">About タイトル</label>
+                <input class="form-control" type="text" id="cfgAboutTitle" placeholder="古着屋の常識を、変えたい。">
+              </div>
+              <div class="form-group">
+                <label class="form-label">About 本文</label>
+                <textarea class="form-control" id="cfgAboutText" rows="6" placeholder="ブランドの説明文（空行で段落分け）"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="settings-card">
+              <div class="settings-card-title">カラー設定</div>
+              <div class="form-group">
+                <label class="form-label">背景色</label>
+                <input type="color" id="cfgBgColor" value="#F7EAE3" style="width:100%;height:44px;border:1px solid #3a3836;cursor:pointer;padding:2px;background:none;">
+                <div class="form-hint">サイト全体の背景色（推奨: ブラッシュピンク）</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">メインカラー（テキスト・アクセント）</label>
+                <input type="color" id="cfgDarkColor" value="#181210" style="width:100%;height:44px;border:1px solid #3a3836;cursor:pointer;padding:2px;background:none;">
+              </div>
+            </div>
+
+            <div class="settings-card" style="margin-top:1.25rem">
+              <div class="settings-card-title">お知らせバナー</div>
+              <div class="form-group">
+                <label class="checkbox-row">
+                  <input type="checkbox" id="cfgAnnActive">
+                  バナーを表示する
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="form-label">バナーテキスト</label>
+                <input class="form-control" type="text" id="cfgAnnText" placeholder="例: 毎週土曜12:00 新入荷！">
+              </div>
+            </div>
+
+            <div class="settings-card" style="margin-top:1.25rem">
+              <div class="settings-card-title">入荷通知テキスト</div>
+              <div class="form-group">
+                <label class="form-label">カウントダウン下のテキスト</label>
+                <input class="form-control" type="text" id="cfgSatNote" placeholder="毎週土曜 12:00 に新着アイテムをお届けします">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <span class="save-bar-note">変更後、サイトをリロードすると反映されます</span>
+          <div style="display:flex;align-items:center;gap:1rem">
+            <span id="saveStatusSite"></span>
+            <button class="btn btn-primary" id="saveSiteBtn">保存する</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 決済・SNS ── -->
+      <div class="tab-panel" id="tab-payment">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">決済・SNS設定</div>
+            <div class="panel-sub">Stripe Payment Links・Instagram・LINE設定</div>
+          </div>
+        </div>
+
+        <!-- Instagram -->
+        <div class="settings-card" style="margin-bottom:1.5rem">
+          <div class="settings-card-title">Instagram</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Instagram ID（@なし）</label>
+              <input class="form-control" type="text" id="cfgIgId" placeholder="farven_vintage">
+              <div class="form-hint">例: farven_vintage（@は不要）</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instagram 投稿URL（グリッドに表示・最大12件）</label>
+            <div class="form-hint" style="margin-bottom:.75rem">各投稿のURL（例: https://www.instagram.com/p/XXXXXXXX/）を貼り付けてください。空欄はカラーブロックになります。</div>
+            <div class="ig-posts-grid" id="igPostsGrid"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+            <button class="btn btn-primary" id="saveIgBtn">Instagram設定を保存</button>
+          </div>
+        </div>
+
+        <!-- Payment Guide -->
+        <div class="panel-head" style="margin-top:2rem">
+          <div>
+            <div class="panel-title" style="font-size:1.1rem">決済プラットフォーム</div>
+            <div class="panel-sub">各商品の「決済リンク」に購入URLを設定してください</div>
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <strong>設定の流れ：</strong> 下記のいずれかのプラットフォームで商品を登録 → 購入リンクを取得 → 管理画面の各商品編集から「決済リンク」に貼り付け → 保存
+        </div>
+
+        <div class="payment-cards">
+          <div class="payment-card">
+            <div class="payment-card-head">
+              <div class="payment-icon" style="background:#635BFF;color:#fff;font-size:.8rem;">Str</div>
+              <div>
+                <h3>Stripe Payment Links <span class="platform-recommended">おすすめ</span></h3>
+              </div>
+            </div>
+            <p>クレジットカード・Apple Pay・Google Pay対応。手数料3.6%。月額固定費なし。決済後にStripeダッシュボードで売上確認。</p>
+            <div class="payment-steps">
+              <div class="payment-step"><span class="step-n">1</span>stripe.com でアカウント作成・本人確認</div>
+              <div class="payment-step"><span class="step-n">2</span>「Payment Links」メニューから商品リンクを作成</div>
+              <div class="payment-step"><span class="step-n">3</span>生成されたURL（buy.stripe.com/…）を各商品の決済リンクに貼り付け</div>
+              <div class="payment-step"><span class="step-n">4</span>購入者には自動で領収書メールが送信されます</div>
+            </div>
+            <a class="guide-link" href="https://stripe.com/jp" target="_blank" rel="noopener">
+              Stripeを始める →
+            </a>
+          </div>
+
+          <div class="payment-card">
+            <div class="payment-card-head">
+              <div class="payment-icon" style="background:#FF4E2A;color:#fff;font-size:.75rem;">BASE</div>
+              <div><h3>BASE（ベイス）</h3></div>
+            </div>
+            <p>日本最大級のECプラットフォーム。PayPay・コンビニ払い対応。初期費用・月額無料（販売手数料6.6%+決済手数料）。</p>
+            <div class="payment-steps">
+              <div class="payment-step"><span class="step-n">1</span>base.me でショップ開設（無料）</div>
+              <div class="payment-step"><span class="step-n">2</span>商品を登録して公開</div>
+              <div class="payment-step"><span class="step-n">3</span>各商品ページURLをこのサイトの決済リンクに設定</div>
+              <div class="payment-step"><span class="step-n">4</span>購入者は自動でBASEの決済フローへ</div>
+            </div>
+            <a class="guide-link" href="https://thebase.com" target="_blank" rel="noopener">
+              BASEを始める →
+            </a>
+          </div>
+
+          <div class="payment-card">
+            <div class="payment-card-head">
+              <div class="payment-icon" style="background:#00B7D1;color:#fff;font-size:.7rem;">STORES</div>
+              <div><h3>STORES.jp</h3></div>
+            </div>
+            <p>シンプルで使いやすい国産ECプラットフォーム。フリープランで販売手数料5%。クレジットカード・コンビニ払い対応。</p>
+            <div class="payment-steps">
+              <div class="payment-step"><span class="step-n">1</span>stores.jp でショップ作成（無料）</div>
+              <div class="payment-step"><span class="step-n">2</span>商品登録・公開</div>
+              <div class="payment-step"><span class="step-n">3</span>商品URLをこのサイトに設定</div>
+            </div>
+            <a class="guide-link" href="https://stores.jp" target="_blank" rel="noopener">
+              STORESを始める →
+            </a>
+          </div>
+        </div>
+
+        <div class="alert alert-warn">
+          <strong>古物商許可証について：</strong> 古着の買取・販売には古物商許可証が必要です。管轄警察署への申請をお忘れなく（申請費19,000円、約40日で取得可能）。
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Product Form Drawer ── -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="form-drawer" id="formDrawer">
+  <div class="drawer-head">
+    <span class="drawer-title" id="drawerTitle">商品を追加</span>
+    <button class="drawer-close" id="drawerClose">×</button>
+  </div>
+  <div class="drawer-body">
+    <form id="productForm" autocomplete="off">
+      <input type="hidden" id="pId">
+
+      <div class="form-group">
+        <label class="form-label">商品名 *</label>
+        <input class="form-control" type="text" id="pName" placeholder="例: Y2K デニムジャケット" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">カテゴリ *</label>
+          <select class="form-control" id="pCategory">
+            <option value="tops">トップス</option>
+            <option value="bottoms">ボトムス</option>
+            <option value="outer">アウター</option>
+            <option value="onepiece">ワンピース</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">シーズン</label>
+          <select class="form-control" id="pSeason">
+            <option value="all">オールシーズン</option>
+            <option value="spring">春夏</option>
+            <option value="autumn">秋冬</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">価格（税込）*</label>
+          <input class="form-control" type="number" id="pPrice" placeholder="12800" min="0" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">サイズ</label>
+          <input class="form-control" type="text" id="pSize" placeholder="XS / S / M / L / F">
+        </div>
+      </div>
+
+      <div class="form-section-title">カラー・コンディション</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">カラー</label>
+          <select class="form-control" id="pColor">
+            <option value="white">ホワイト</option>
+            <option value="black">ブラック</option>
+            <option value="beige">ベージュ</option>
+            <option value="cream">クリーム</option>
+            <option value="pink">ピンク</option>
+            <option value="lavender">ラベンダー</option>
+            <option value="blue">ブルー</option>
+            <option value="navy">ネイビー</option>
+            <option value="khaki">カーキ</option>
+            <option value="brown">ブラウン</option>
+            <option value="darkbrown">ダークブラウン</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">コンディション</label>
+          <select class="form-control" id="pCondition">
+            <option value="S">S（ほぼ新品）</option>
+            <option value="A">A（使用感極少）</option>
+            <option value="B">B（軽微な使用感）</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section-title">ステータス</div>
+      <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem">
+        <label class="checkbox-row"><input type="checkbox" id="pIsNew"> NEW バッジ</label>
+        <label class="checkbox-row"><input type="checkbox" id="pIsLastOne"> 残り1点バッジ</label>
+        <label class="checkbox-row"><input type="checkbox" id="pIsSold"> SOLD OUT</label>
+      </div>
+
+      <div class="form-section-title">画像・決済</div>
+      <div class="form-group">
+        <label class="form-label">商品画像URL</label>
+        <input class="form-control" type="url" id="pImageUrl" placeholder="https://... （省略時はカラーブロックで表示）">
+        <div class="form-hint">直接リンク可能な画像URLを入力（Google Drive不可。imgbbやCloudinaryが便利）</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">決済リンク（Stripe / BASE / STORES）</label>
+        <input class="form-control" type="url" id="pPaymentLink" placeholder="https://buy.stripe.com/... または BASEの商品URL">
+        <div class="form-hint">「今すぐ購入」ボタンの遷移先。未設定時は「準備中」と表示されます。</div>
+      </div>
+
+      <div class="form-section-title">商品説明</div>
+      <div class="form-group">
+        <textarea class="form-control" id="pDescription" rows="4" placeholder="素材感、着用感、ヴィンテージの背景など..."></textarea>
+      </div>
+
+      <div class="form-section-title">寸法</div>
+      <div class="measurements-editor" id="measurementsEditor"></div>
+      <button type="button" class="add-measure" id="addMeasureBtn" style="margin-top:.5rem">+ 寸法を追加</button>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="cancelDrawerBtn">キャンセル</button>
+        <button type="submit" class="btn btn-primary">保存する</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="adminToast"></div>
+
+<script>
+/* ─────────────────────────────────────────────────────────── */
+/*  FARVEN VINTAGE ADMIN — app logic                           */
+/* ─────────────────────────────────────────────────────────── */
+
+/* ── AUTH ──────────────────────────────────────────────────── */
+const _c = { i: 'ZmFydmVuXzEyMjQ=', p: 'RnVua28wMjE2' };
+function checkCreds(id, pw) { return id === atob(_c.i) && pw === atob(_c.p); }
+function isLoggedIn() { return sessionStorage.getItem('fv_auth') === '1'; }
+function setLoggedIn() { sessionStorage.setItem('fv_auth', '1'); }
+function clearLogin()  { sessionStorage.removeItem('fv_auth'); }
+
+/* ── DATA ──────────────────────────────────────────────────── */
+const COLOR_MAP = {
+  white:'#E8E2DC', black:'#282020', beige:'#C9B99A', cream:'#E4D5B8',
+  pink:'#DFA8B8', lavender:'#B8A8C8', blue:'#7BA7C4', navy:'#3A4A6A',
+  khaki:'#8A9070', brown:'#9B7C5A', darkbrown:'#6B4836'
+};
+
+function defaultProducts() {
+  try { return JSON.parse(localStorage.getItem('farven_products') || 'null'); } catch {}
+  return null;
+}
+function loadProducts() { return defaultProducts() || window._DEFAULT_PRODUCTS || []; }
+function saveProducts(products) { localStorage.setItem('farven_products', JSON.stringify(products)); }
+
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem('farven_config') || '{}'); } catch { return {}; }
+}
+function saveConfig(cfg) { localStorage.setItem('farven_config', JSON.stringify(cfg)); }
+
+/* Inject default products from main app.js defaults */
+window._DEFAULT_PRODUCTS = [
+  {id:1,name:'Y2K フォトプリント デニムジャケット',category:'outer',price:14800,color:'blue',colorHex:'#7BA7C4',colorLabel:'ブルー',size:'M',condition:'A',season:'all',isNew:true,isLastOne:true,isSold:false,description:'2000年代初頭のフォトグラフィックプリントが特徴的なデニムジャケット。',measurements:{肩幅:'38cm',身幅:'48cm',着丈:'54cm',袖丈:'58cm'},paymentLink:'',imageUrl:''},
+  {id:2,name:'90s ニットベスト クルーネック',category:'tops',price:7800,color:'beige',colorHex:'#C9B99A',colorLabel:'ベージュ',size:'F',condition:'A',season:'autumn',isNew:true,isLastOne:false,isSold:false,description:'90年代のクラシックなニットベスト。',measurements:{肩幅:'42cm',身幅:'52cm',着丈:'58cm'},paymentLink:'',imageUrl:''},
+  {id:3,name:'Y2K バタフライ刺繍 チュールスカート',category:'bottoms',price:9500,color:'pink',colorHex:'#DFA8B8',colorLabel:'ピンク',size:'S',condition:'S',season:'spring',isNew:true,isLastOne:true,isSold:false,description:'繊細なバタフライ刺繍がポイントのチュールスカート。',measurements:{ウエスト:'66cm',ヒップ:'94cm',着丈:'62cm'},paymentLink:'',imageUrl:''},
+  {id:4,name:'レオパード スリップドレス',category:'onepiece',price:12500,color:'brown',colorHex:'#9B7C5A',colorLabel:'ブラウン',size:'M',condition:'A',season:'all',isNew:true,isLastOne:false,isSold:true,description:'クラシックなアニマルプリントのスリップドレス。',measurements:{肩幅:'36cm',身幅:'44cm',着丈:'86cm'},paymentLink:'',imageUrl:''},
+  {id:5,name:'00s カーゴパンツ ローライズ',category:'bottoms',price:11800,color:'khaki',colorHex:'#8A9070',colorLabel:'カーキ',size:'S',condition:'B',season:'all',isNew:false,isLastOne:true,isSold:false,description:'Y2K期の定番ローライズカーゴ。',measurements:{ウエスト:'70cm',ヒップ:'98cm',股上:'22cm',股下:'74cm'},paymentLink:'',imageUrl:''},
+  {id:6,name:'90s フラワーニット プルオーバー',category:'tops',price:8900,color:'white',colorHex:'#E8E2DC',colorLabel:'ホワイト',size:'F',condition:'A',season:'autumn',isNew:false,isLastOne:false,isSold:false,description:'胸元の立体フラワーモチーフがポイントのニットプルオーバー。',measurements:{肩幅:'44cm',身幅:'54cm',着丈:'60cm'},paymentLink:'',imageUrl:''},
+  {id:7,name:'ベロア セットアップ ブラウン',category:'outer',price:24800,color:'darkbrown',colorHex:'#6B4836',colorLabel:'ダークブラウン',size:'M',condition:'A',season:'winter',isNew:false,isLastOne:true,isSold:false,description:'2000年代初頭のベロア素材セットアップ。上下セット。',measurements:{着丈:'58cm',ウエスト:'72cm'},paymentLink:'',imageUrl:''},
+  {id:8,name:'Y2K チェーンベルト ミニスカート',category:'bottoms',price:8200,color:'black',colorHex:'#282020',colorLabel:'ブラック',size:'XS',condition:'S',season:'all',isNew:false,isLastOne:false,isSold:false,description:'チェーンベルト付きのY2Kミニスカート。',measurements:{ウエスト:'62cm',ヒップ:'88cm',着丈:'36cm'},paymentLink:'',imageUrl:''},
+  {id:9,name:'00s バンドカラー フリルブラウス',category:'tops',price:7200,color:'lavender',colorHex:'#B8A8C8',colorLabel:'ラベンダー',size:'M',condition:'A',season:'spring',isNew:false,isLastOne:true,isSold:false,description:'バンドカラーにフリルの重なりが繊細なブラウス。',measurements:{肩幅:'36cm',身幅:'46cm',着丈:'56cm'},paymentLink:'',imageUrl:''},
+  {id:10,name:'ヴィンテージ フリースジャケット',category:'outer',price:9800,color:'blue',colorHex:'#6A9CB8',colorLabel:'スカイブルー',size:'L',condition:'B',season:'winter',isNew:false,isLastOne:false,isSold:false,description:'90年代のスポーティーなフリースジャケット。',measurements:{肩幅:'46cm',身幅:'56cm',着丈:'62cm'},paymentLink:'',imageUrl:''},
+  {id:11,name:'ストライプ オーバーオール',category:'other',price:13200,color:'navy',colorHex:'#3A4A6A',colorLabel:'ネイビー',size:'S',condition:'A',season:'spring',isNew:false,isLastOne:true,isSold:false,description:'ネイビー×ホワイトのクラシックなストライプオーバーオール。',measurements:{肩幅:'38cm',身幅:'50cm',着丈:'128cm'},paymentLink:'',imageUrl:''},
+  {id:12,name:'ミルクメイド フローラルドレス',category:'onepiece',price:15800,color:'cream',colorHex:'#E4D5B8',colorLabel:'クリーム',size:'M',condition:'S',season:'spring',isNew:false,isLastOne:false,isSold:false,description:'フローラルプリントのミルクメイドドレス。Sランクの美品。',measurements:{バスト:'88cm',ウエスト:'76cm',着丈:'110cm'},paymentLink:'',imageUrl:''}
+];
+
+/* ── TOAST ──────────────────────────────────────────────────── */
+let toastTimer;
+function adminToast(msg) {
+  const el = document.getElementById('adminToast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ── TABS ───────────────────────────────────────────────────── */
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + tabId)?.classList.add('active');
+  document.querySelector(`.nav-item[data-tab="${tabId}"]`)?.classList.add('active');
+  if (tabId === 'site')    loadSiteForm();
+  if (tabId === 'payment') loadPaymentForm();
+}
+
+/* ── PRODUCT TABLE ───────────────────────────────────────────── */
+const catMap = {tops:'トップス',bottoms:'ボトムス',outer:'アウター',onepiece:'ワンピース',other:'その他'};
+
+function renderProductTable() {
+  const products = loadProducts();
+  const tbody = document.getElementById('productTableBody');
+  if (!products.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📦</div><p>商品がまだありません。<br>「商品を追加」から登録してください。</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = products.map(p => `
+    <tr>
+      <td class="product-name-cell">
+        ${p.name}
+        <small>${catMap[p.category]||p.category}</small>
+      </td>
+      <td>
+        <span class="color-dot" style="background:${p.colorHex||'#aaa'}"></span>${p.colorLabel||p.color}
+      </td>
+      <td>¥${Number(p.price).toLocaleString()}</td>
+      <td>${p.size||'—'}</td>
+      <td>
+        ${p.isSold ? '<span class="status-badge status-sold">SOLD</span>' : '<span class="status-badge status-active">在庫あり</span>'}
+        ${p.isNew ? '<span class="status-badge status-new" style="margin-left:3px">NEW</span>' : ''}
+      </td>
+      <td>${p.paymentLink ? '<span class="link-status">✓ 設定済</span>' : '<span class="link-missing">未設定</span>'}</td>
+      <td class="actions-cell">
+        <button class="btn btn-ghost btn-sm" onclick="editProduct(${p.id})">編集</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">削除</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ── DRAWER ─────────────────────────────────────────────────── */
+function openDrawer(titleText) {
+  document.getElementById('drawerTitle').textContent = titleText;
+  document.getElementById('formDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('formDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('productForm').reset();
+  document.getElementById('pId').value = '';
+  renderMeasurements([]);
+}
+
+/* ── MEASUREMENTS ────────────────────────────────────────────── */
+let measureData = [];
+function renderMeasurements(data) {
+  measureData = [...data];
+  const container = document.getElementById('measurementsEditor');
+  container.innerHTML = '';
+  measureData.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'measurement-row';
+    row.innerHTML = `
+      <input class="form-control" type="text" placeholder="部位（例: 肩幅）" value="${m.key||''}" oninput="measureData[${i}].key=this.value" style="flex:1.2">
+      <input class="form-control" type="text" placeholder="値（例: 38cm）" value="${m.val||''}" oninput="measureData[${i}].val=this.value" style="flex:1">
+      <button type="button" class="remove-measure" onclick="removeMeasurement(${i})">−</button>`;
+    container.appendChild(row);
+  });
+}
+function addMeasurement() { measureData.push({key:'',val:''}); renderMeasurements(measureData); }
+function removeMeasurement(i) { measureData.splice(i,1); renderMeasurements(measureData); }
+
+
+/* ── ADD / EDIT PRODUCT ──────────────────────────────────────── */
+function showAddProduct() {
+  document.getElementById('productForm').reset();
+  document.getElementById('pId').value = '';
+  renderMeasurements([]);
+  openDrawer('商品を追加');
+}
+
+function editProduct(id) {
+  const products = loadProducts();
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('pId').value        = p.id;
+  document.getElementById('pName').value      = p.name || '';
+  document.getElementById('pCategory').value  = p.category || 'tops';
+  document.getElementById('pSeason').value    = p.season || 'all';
+  document.getElementById('pPrice').value     = p.price || '';
+  document.getElementById('pSize').value      = p.size || '';
+  document.getElementById('pColor').value     = p.color || 'beige';
+  document.getElementById('pCondition').value = p.condition || 'A';
+  document.getElementById('pIsNew').checked   = !!p.isNew;
+  document.getElementById('pIsLastOne').checked= !!p.isLastOne;
+  document.getElementById('pIsSold').checked  = !!p.isSold;
+  document.getElementById('pImageUrl').value  = p.imageUrl || '';
+  document.getElementById('pPaymentLink').value= p.paymentLink || '';
+  document.getElementById('pDescription').value= p.description || '';
+  const mArr = Object.entries(p.measurements||{}).map(([key,val])=>({key,val}));
+  renderMeasurements(mArr);
+  openDrawer('商品を編集');
+}
+
+function deleteProduct(id) {
+  if (!confirm('この商品を削除しますか？')) return;
+  let products = loadProducts();
+  products = products.filter(p => p.id !== id);
+  saveProducts(products);
+  renderProductTable();
+  adminToast('削除しました');
+}
+
+document.getElementById('productForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const products = loadProducts();
+  const idVal = document.getElementById('pId').value;
+  const measurements = {};
+  measureData.forEach(m => { if (m.key) measurements[m.key] = m.val; });
+
+  const product = {
+    id:          idVal ? Number(idVal) : Date.now(),
+    name:        document.getElementById('pName').value.trim(),
+    category:    document.getElementById('pCategory').value,
+    season:      document.getElementById('pSeason').value,
+    price:       Number(document.getElementById('pPrice').value),
+    size:        document.getElementById('pSize').value.trim(),
+    color:       document.getElementById('pColor').value,
+    colorLabel:  document.getElementById('pColor').options[document.getElementById('pColor').selectedIndex].text,
+    colorHex:    COLOR_MAP[document.getElementById('pColor').value] || '#888888',
+    condition:   document.getElementById('pCondition').value,
+    isNew:       document.getElementById('pIsNew').checked,
+    isLastOne:   document.getElementById('pIsLastOne').checked,
+    isSold:      document.getElementById('pIsSold').checked,
+    imageUrl:    document.getElementById('pImageUrl').value.trim(),
+    paymentLink: document.getElementById('pPaymentLink').value.trim(),
+    description: document.getElementById('pDescription').value.trim(),
+    measurements,
+  };
+
+  if (idVal) {
+    const idx = products.findIndex(p => p.id === Number(idVal));
+    if (idx >= 0) products[idx] = product; else products.push(product);
+  } else {
+    products.push(product);
+  }
+  saveProducts(products);
+  renderProductTable();
+  closeDrawer();
+  adminToast('保存しました ✓');
+});
+
+/* ── SITE CONFIG FORM ────────────────────────────────────────── */
+function loadSiteForm() {
+  const cfg = loadConfig();
+  document.getElementById('cfgHeroPrimary').value = cfg.heroPrimary !== undefined ? cfg.heroPrimary : '売り場ではなく、\n倉庫を体験に変える。';
+  document.getElementById('cfgHeroSub').value     = cfg.heroSub     !== undefined ? cfg.heroSub     : '探す古着屋ではなく、選べる古着屋。';
+  document.getElementById('cfgHeroCta').value     = cfg.heroCta     !== undefined ? cfg.heroCta     : '最新入荷を見る';
+  document.getElementById('cfgAboutTitle').value  = cfg.aboutTitle  !== undefined ? cfg.aboutTitle  : '';
+  document.getElementById('cfgAboutText').value   = cfg.aboutText   !== undefined ? cfg.aboutText   : '';
+  const bg   = cfg.bgColor   || '#F7EAE3';
+  const dark = cfg.darkColor || '#181210';
+  document.getElementById('cfgBgColor').value   = bg;
+  document.getElementById('cfgDarkColor').value  = dark;
+  document.getElementById('cfgAnnActive').checked = !!cfg.announcementActive;
+  document.getElementById('cfgAnnText').value     = cfg.announcement || '';
+  document.getElementById('cfgSatNote').value     = cfg.saturdayNote || '';
+}
+
+
+document.getElementById('saveSiteBtn').addEventListener('click', () => {
+  const cfg = loadConfig();
+  cfg.heroPrimary        = document.getElementById('cfgHeroPrimary').value;
+  cfg.heroSub            = document.getElementById('cfgHeroSub').value;
+  cfg.heroCta            = document.getElementById('cfgHeroCta').value;
+  cfg.aboutTitle         = document.getElementById('cfgAboutTitle').value;
+  cfg.aboutText          = document.getElementById('cfgAboutText').value;
+  cfg.bgColor            = document.getElementById('cfgBgColor').value;
+  cfg.darkColor          = document.getElementById('cfgDarkColor').value;
+  cfg.announcementActive = document.getElementById('cfgAnnActive').checked;
+  cfg.announcement       = document.getElementById('cfgAnnText').value;
+  cfg.saturdayNote       = document.getElementById('cfgSatNote').value;
+  saveConfig(cfg);
+  document.getElementById('saveStatusSite').textContent = '✓ 保存しました';
+  setTimeout(() => { document.getElementById('saveStatusSite').textContent = ''; }, 3000);
+  adminToast('サイト設定を保存しました ✓');
+});
+
+/* ── PAYMENT / SNS FORM ──────────────────────────────────────── */
+function loadPaymentForm() {
+  const cfg = loadConfig();
+  const igId = document.getElementById('cfgIgId');
+  if (igId) igId.value = cfg.instagramId || 'farven_vintage';
+  // IG posts
+  const grid = document.getElementById('igPostsGrid');
+  const posts = cfg.igPosts || [];
+  grid.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'ig-post-input-cell';
+    cell.innerHTML = `
+      <span class="ig-post-num">投稿 ${i+1}</span>
+      <input class="form-control" type="url" id="igPost${i}" placeholder="https://www.instagram.com/p/..." value="${posts[i]||''}">`;
+    grid.appendChild(cell);
+  }
+}
+
+document.getElementById('saveIgBtn').addEventListener('click', () => {
+  const cfg = loadConfig();
+  cfg.instagramId = document.getElementById('cfgIgId')?.value.trim().replace('@','') || 'farven_vintage';
+  cfg.igPosts = [];
+  for (let i = 0; i < 12; i++) {
+    cfg.igPosts.push(document.getElementById('igPost'+i)?.value.trim() || '');
+  }
+  saveConfig(cfg);
+  adminToast('Instagram設定を保存しました ✓');
+});
+
+/* ── INIT ────────────────────────────────────────────────────── */
+function initDashboard() {
+  renderProductTable();
+  document.getElementById('addProductBtn').addEventListener('click', showAddProduct);
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  document.getElementById('cancelDrawerBtn').addEventListener('click', closeDrawer);
+  document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+  document.getElementById('addMeasureBtn').addEventListener('click', addMeasurement);
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => switchTab(item.dataset.tab));
+  });
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    clearLogin(); location.reload();
+  });
+}
+
+function showLoginScreen() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('dashboard').style.display   = 'none';
+}
+function showDashboard() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display   = 'block';
+  initDashboard();
+}
+
+document.getElementById('loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const id = document.getElementById('adminId').value.trim();
+  const pw = document.getElementById('adminPw').value;
+  if (checkCreds(id, pw)) {
+    setLoggedIn(); showDashboard();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('adminPw').value = '';
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (isLoggedIn()) showDashboard(); else showLoginScreen();
+});
+</script>
+</body>
+</html>
